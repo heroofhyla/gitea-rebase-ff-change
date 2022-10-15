@@ -414,11 +414,11 @@ func rawMerge(ctx context.Context, pr *issues_model.PullRequest, doer *user_mode
 		outbuf.Reset()
 		errbuf.Reset()
 
-        // If fast-forward rebase, see if a simple --ff-only merge is enough
+        // If fast-forward rebase, try a simple fast-forward merge first
 		if mergeStyle == repo_model.MergeStyleRebase {
             cmd := git.NewCommand(ctx, "merge")
 			cmd.AddArguments("--ff-only")
-            cmd.AddArguments(stagingBranch)
+            cmd.AddArguments(trackingBranch)
 
             //If we can simply do a --ff-only, stop here
             if err := runMergeCommand(pr, mergeStyle, cmd, tmpBasePath); err == nil {
