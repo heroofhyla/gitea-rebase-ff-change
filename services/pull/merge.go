@@ -401,6 +401,19 @@ func rawMerge(ctx context.Context, pr *issues_model.PullRequest, doer *user_mode
 	case repo_model.MergeStyleRebaseUpdate:
 		fallthrough
 	case repo_model.MergeStyleRebaseMerge:
+        // If fast-forward rebase, try a simple fast-forward merge first
+		if mergeStyle == repo_model.MergeStyleRebase {
+            cmd := git.NewCommand(ctx, "merge")
+			cmd.AddArguments("--ff-only")
+            cmd.AddArguments(trackingBranch)
+
+            //If we can simply do a --ff-only, stop here
+            if err := runMergeCommand(pr, mergeStyle, cmd, tmpBasePath); err == nil {
+                break;
+            }
+
+		}
+
 		// Checkout head branch
 		if err := git.NewCommand(ctx, "checkout", "-b", stagingBranch, trackingBranch).
 			Run(&git.RunOpts{
